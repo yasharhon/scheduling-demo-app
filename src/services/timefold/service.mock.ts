@@ -1,4 +1,5 @@
 import { UserDTO, CreateUserPayload } from '../../types/timefold';
+import { ApiError } from '../apiClient';
 
 /**
  * A mock user object that matches the UserDTO interface.
@@ -87,11 +88,7 @@ export const userService = {
     
     // Simulate a 404
     if (!user) {
-      // You could simulate an error:
-      // throw new ApiError('Mock Not Found', 404);
-      
-      // Or just return null
-      return simulateDelay(null, 50);
+      throw new ApiError('Mock Not Found', 404);
     }
     
     return simulateDelay({ ...user }); // Return a copy
