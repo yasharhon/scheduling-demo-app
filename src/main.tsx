@@ -1,11 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.jsx'; // We'll create this file next
+import App from './App'; // Vite handles the .tsx extension
 
-// Find the 'root' div in index.html and render our App component inside it.
+// Find the 'root' div in index.html
 const rootElement = document.getElementById('root');
+
+// Add a null check and type assertion for TypeScript
 if (rootElement) {
-  ReactDOM.createRoot(rootElement).render(
+  ReactDOM.createRoot(rootElement as HTMLElement).render(
     <React.StrictMode>
       <App />
     </React.StrictMode>

@@ -1,34 +1,38 @@
 import React, { useState, useEffect } from 'react';
-// We import the MOCK service, just like index.ts did
+// We import the MOCK service
 import { userService } from './services/timefold/service.mock';
-// Note: We don't need to import DTOs in a .jsx file,
-// but we would if this were a .tsx file.
+// --- TS ---
+// Import the types we'll need from our DTO file
+import { UserDTO, CreateUserPayload } from './types/timefold';
 
 /**
  * A simple component to render data as a formatted JSON string.
+ * --- TS --- Added type for props
  */
-function JsonDisplay({ data }) {
+interface JsonDisplayProps {
+  data: any; // Using 'any' for simplicity, could be 'unknown' or a generic
+}
+
+function JsonDisplay({ data }: JsonDisplayProps) {
   if (!data) return null;
   return <pre>{JSON.stringify(data, null, 2)}</pre>;
 }
 
 /**
  * Main application component.
- * Replaces the logic from `index.ts` and renders it to the UI.
  */
 function App() {
-  // === STATE ===
-  // State to hold all our data, replacing the console.logs
-  const [loading, setLoading] = useState(true);
-  const [allUsers, setAllUsers] = useState([]);
-  const [user1, setUser1] = useState(null);
-  const [user999Error, setUser999Error] = useState(null);
-  const [createdUser, setCreatedUser] = useState(null);
+  // === STATE (with Types) ===
+  const [loading, setLoading] = useState<boolean>(true);
+  
+  // --- TS --- Added explicit types for our state
+  const [allUsers, setAllUsers] = useState<UserDTO[]>([]);
+  const [user1, setUser1] = useState<UserDTO | null>(null);
+  const [user999Error, setUser999Error] = useState<string | null>(null);
+  const [createdUser, setCreatedUser] = useState<UserDTO | null>(null);
 
   // === DATA FETCHING ===
-  // This useEffect hook runs once when the component mounts
   useEffect(() => {
-    // We create an async function inside the hook to call our services
     async function loadData() {
       try {
         // 1. Get all users
@@ -37,7 +41,6 @@ function App() {
           setAllUsers(users);
         } catch (error) {
           console.error('Failed to fetch all users:', error);
-          // You could set an error state here
         }
 
         // 2. Get a single user (ID: 1)
@@ -52,7 +55,6 @@ function App() {
         try {
           await userService.getUserById(999);
         } catch (error) {
-          // This is the expected path! We'll store the error to display it.
           if (error instanceof Error) {
             setUser999Error(error.message);
           } else {
@@ -62,7 +64,8 @@ function App() {
 
         // 4. Create a new user
         try {
-          const newUserPayload = {
+          // --- TS --- Apply our CreateUserPayload type
+          const newUserPayload: CreateUserPayload = {
             name: 'Gemini User (Mocked)',
             username: 'gemini_mock',
             email: 'gemini@mock.example.com',
@@ -76,15 +79,14 @@ function App() {
       } catch (globalError) {
         console.error("An unexpected error occurred during data loading:", globalError);
       } finally {
-        setLoading(false); // Data loading is complete (or failed)
+        setLoading(false);
       }
     }
 
-    loadData(); // Call the function
-  }, []); // The empty array [] means this effect runs only once
+    loadData();
+  }, []);
 
   // === RENDER ===
-  // Render the state data to the screen
   return (
     <div>
       <h1>TypeScript API Client Demo (React UI)</h1>
