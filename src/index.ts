@@ -1,23 +1,32 @@
-import { userService } from './services/userService';
-import { CreateUserPayload } from './types/api/userDTO';
+// To use the REAL service:
+// import { userService } from './services/userService';
+
+// To use the MOCK service, just change the import:
+import { userService } from './services/timefold/service.mock';
+
+import { CreateUserPayload } from './types/timefold';
 
 /**
  * Main function to demonstrate API service usage.
+ * This will now run against the mock service.
  */
 async function main() {
-  console.log('--- TypeScript API Client Demo ---');
+  console.log('--- TypeScript API Client Demo (RUNNING ON MOCKS) ---');
 
   // 1. Get all users
   try {
     console.log('\nFetching all users...');
     const users = await userService.getAllUsers();
-    console.log(`Successfully fetched ${users.length} users.`);
-    // Log the name of the first user
+    console.log(`Successfully fetched ${users.length} mock users.`);
     if (users.length > 0) {
-      console.log(`First user's name: ${users[0].name}`);
+      console.log(`First mock user's name: ${users[0].name}`);
     }
   } catch (error) {
-    console.error('Failed to fetch users:', error.message);
+    if (error instanceof Error) {
+      console.error('Failed to fetch users:', error.message);
+    } else {
+      console.error('An unknown error occurred while fetching users:', error);
+    }
   }
 
   // 2. Get a single user (ID: 1)
@@ -30,7 +39,11 @@ async function main() {
       console.log('User not found.');
     }
   } catch (error) {
-    console.error('Failed to fetch user 1:', error.message);
+    if (error instanceof Error) {
+      console.error('Failed to fetch user 1:', error.message);
+    } else {
+      console.error('An unknown error occurred while fetching user 1:', error);
+    }
   }
   
   // 3. Get a user that doesn't exist (ID: 999)
@@ -43,22 +56,29 @@ async function main() {
       console.log('User 999 not found, as expected.');
     }
   } catch (error) {
-    console.error('Failed to fetch user 999:', error.message);
+    if (error instanceof Error) {
+      console.error('Failed to fetch user 999:', error.message);
+    } else {
+      console.error('An unknown error occurred while fetching user 999:', error);
+    }
   }
 
   // 4. Create a new user
   try {
     console.log('\nCreating a new user...');
     const newUserPayload: CreateUserPayload = {
-      name: 'Gemini User',
-      username: 'gemini',
-      email: 'gemini@example.com',
+      name: 'Gemini User (Mocked)',
+      username: 'gemini_mock',
+      email: 'gemini@mock.example.com',
     };
     const createdUser = await userService.createUser(newUserPayload);
-    // Note: JSONPlaceholder returns an ID of 11 for new posts
-    console.log(`Created user: ${createdUser.name} (ID: ${createdUser.id})`);
+    console.log(`Created mock user: ${createdUser.name} (ID: ${createdUser.id})`);
   } catch (error) {
-    console.error('Failed to create user:', error.message);
+    if (error instanceof Error) {
+      console.error('Failed to create user:', error.message);
+    } else {
+      console.error('An unknown error occurred while creating user:', error);
+    }
   }
 }
 
