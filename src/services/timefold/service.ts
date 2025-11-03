@@ -4,7 +4,9 @@ import { UserDTO, CreateUserPayload } from '../types/api/userDTO';
 /**
  * Service to manage user-related API calls.
  */
-export const userService = {
+export const timefoldService = {
+
+    apiClient: new ApiClient(),
   
   /**
    * Fetches a list of all users.
