@@ -11,9 +11,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@bryntum/schedulerpro": "npm:@bryntum/schedulerpro-trial@^6.3.3",
+    "@bryntum/schedulerpro": "npm:@bryntum/schedulerpro-trial@6.3.3",
+    "@bryntum/schedulerpro-react": "6.3.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "sass": "^1.93.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.20",
