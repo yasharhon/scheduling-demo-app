@@ -1,0 +1,11 @@
+// import bryntum theme
+@import "@bryntum/schedulerpro/schedulerpro.stockholm.css";
+
+// Giving our schedulerpro some height
+#root {
+  height: 800vh;
+}
+
+.App {
+  height: 800vh;
+}
