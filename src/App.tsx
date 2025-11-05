@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// --- UPDATED ---
-// Import only the types and services we need now
 import { Root } from './types/timefold';
+import { BryntumData } from './types/bryntum';
 import { modelService } from './services/timefold/service.mock';
+import { transformTimefoldToBryntum } from './mappers/timefold';
 import { schedulerproProps } from './SchedulerProConfig';
 import { BryntumSchedulerPro, BryntumSchedulerProProps } from '@bryntum/schedulerpro-react';
 import './App.scss';
@@ -13,36 +13,34 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // This state now holds the raw Timefold model input
+  const [timefoldRoot, setTimefoldRoot] = useState<Root | null>(null);
+
   // This state holds the config loaded directly from the JSON file.
   const [schedulerConfig, setSchedulerConfig] = useState<Partial<BryntumSchedulerProProps> | null>(null);
 
   const schedulerpro = useRef<BryntumSchedulerPro>(null);
 
-  // === DATA FETCHING ===
+  // === DATA FETCHING & TRANSFORMATION ===
   useEffect(() => {
-    async function loadSchedulerData() {
+    async function loadData() {
       try {
-        // Load the data (assuming /data.json from public folder)
-        const response = await fetch('/data.json');
+        // 1. Load Bryntum-native config (e.g., columns, dates)
+        const bryntumStaticConfig = { ...schedulerproProps };
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch data.json: ${response.statusText}`);
-        }
+        // 2. Load Timefold data
+        const timefoldData = await modelService.loadModelInput();
+        setTimefoldRoot(timefoldData);
 
-        const loadResponse = await response.json();
+        // 3. Transform Timefold data into Bryntum format
+        const bryntumTransformedData: BryntumData = transformTimefoldToBryntum(timefoldData);
 
-        // Transform the loaded data into the *prop* format
-        const loadedData = {
-          resources: loadResponse.resources.rows,
-          events: loadResponse.events.rows,
-          dependencies: loadResponse.dependencies.rows,
-          assignments: loadResponse.assignments.rows
-        };
-
-        // Merge static config and loaded data
+        // 4. Merge static config and transformed data
         const finalConfig = {
-          ...schedulerproProps, // Spread all the static settings
-          ...loadedData         // Add/overwrite with the loaded data
+          ...bryntumStaticConfig,
+          resources: bryntumTransformedData.resources,
+          events: bryntumTransformedData.events,
+          // Note: Dependencies and Assignments are not mapped here yet
         };
 
         // 5. Set the final, combined object as your config
@@ -59,7 +57,7 @@ function App() {
       }
     }
 
-    loadSchedulerData();
+    loadData();
   }, []); // The empty array [] means this effect runs only once
 
   // === RENDER ===
@@ -78,7 +76,7 @@ function App() {
 
     // Only render BryntumSchedulerPro if the config is ready
     if (schedulerConfig) {
-      console.log(schedulerConfig);
+      console.log('Final Scheduler Config:', schedulerConfig);
       return (
         <BryntumSchedulerPro
           ref={schedulerpro}
@@ -92,6 +90,7 @@ function App() {
 
   return (
     <div className='App'>
+      <h1>Timefold Scheduler Prototype</h1>
       {renderContent()}
     </div>
   );
