@@ -6,34 +6,50 @@ import { Root } from './types/timefold';
 import { modelService } from './services/timefold/service.mock';
 import { schedulerproProps } from './SchedulerProConfig';
 import { BryntumSchedulerPro, BryntumSchedulerProProps } from '@bryntum/schedulerpro-react';
+import './App.scss';
 
 function App() {
   // === STATE ===
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // This state holds the config loaded directly from the JSON file.
   const [schedulerConfig, setSchedulerConfig] = useState<Partial<BryntumSchedulerProProps> | null>(null);
+
+  const schedulerpro = useRef<BryntumSchedulerPro>(null);
 
   // === DATA FETCHING ===
   useEffect(() => {
     async function loadSchedulerData() {
       try {
-        // 1. Load the pre-formatted Bryntum data
-        // (This file is in the /public directory)
-        const response = await fetch('/public/data.json');
-        
+        // Load the data (assuming /data.json from public folder)
+        const response = await fetch('/data.json');
+
         if (!response.ok) {
-            throw new Error(`Failed to fetch bryntum-data.json: ${response.statusText}`);
+          throw new Error(`Failed to fetch data.json: ${response.statusText}`);
         }
 
-        const data: Partial<BryntumSchedulerProProps> = await response.json();
-        
-        // 2. Set this data directly as our config
-        setSchedulerConfig(data);
+        const loadResponse = await response.json();
+
+        // Transform the loaded data into the *prop* format
+        const loadedData = {
+          resources: loadResponse.resources.rows,
+          events: loadResponse.events.rows,
+          dependencies: loadResponse.dependencies.rows,
+          assignments: loadResponse.assignments.rows
+        };
+
+        // Merge static config and loaded data
+        const finalConfig = {
+          ...schedulerproProps, // Spread all the static settings
+          ...loadedData         // Add/overwrite with the loaded data
+        };
+
+        // 5. Set the final, combined object as your config
+        setSchedulerConfig(finalConfig);
 
       } catch (err) {
-         if (err instanceof Error) {
+        if (err instanceof Error) {
           setError(err.message);
         } else {
           setError('An unknown error occurred loading data.');
@@ -51,7 +67,7 @@ function App() {
     if (loading) {
       return <p className="loading">Loading scheduler data...</p>;
     }
-    
+
     if (error) {
       return (
         <p className="error">
@@ -59,28 +75,26 @@ function App() {
         </p>
       );
     }
-    
+
     // Only render BryntumSchedulerPro if the config is ready
     if (schedulerConfig) {
+      console.log(schedulerConfig);
       return (
         <BryntumSchedulerPro
+          ref={schedulerpro}
           {...schedulerConfig}
         />
       );
     }
-    
+
     return <p>An unexpected error occurred.</p>;
   }
-  
+
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <h1>Bryntum Scheduler (Direct Load)</h1>
-      <div style={{ flex: 1, position: 'relative' }}>
-        {renderContent()}
-      </div>
+    <div className='App'>
+      {renderContent()}
     </div>
   );
 }
 
 export default App;
-
