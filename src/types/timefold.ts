@@ -50,6 +50,16 @@ export interface Config {
   mapsConfiguration: MapsConfiguration
 }
 
+export interface PostRoot {
+  config: Config
+  modelInput: ModelInput
+}
+
+export interface PostConfig {
+  run: Run
+  model: Model
+}
+
 export interface Run {
   name: string
   termination: Termination
