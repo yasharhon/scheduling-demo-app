@@ -42,31 +42,28 @@ function App() {
       return;
     }
 
-    // Bryntum uses Data Stores. We need to access the EventStore and ResourceStore
     try {
-        // 1. Extract Events (Tasks) data
+        // Extract Events (Tasks) data
         const eventsData = scheduler.eventStore.getRange().map(eventRecord => ({
             id: eventRecord.id as string,
             name: eventRecord.name as string,
-            startDate: eventRecord.startDate as Date, // Bryntum records typically hold Date objects
-            endDate: eventRecord.endDate as Date,     // after they are loaded
+            startDate: eventRecord.startDate as Date,
+            endDate: eventRecord.endDate as Date,
             resourceId: eventRecord.resourceId as string,
-            // Add other fields you need for Timefold re-mapping
             duration: eventRecord.duration,
         })) as BryntumData['events'];
 
-        // 2. Extract Resources (Staff/Vehicles) data
+        // Extract Resources (Staff/Vehicles) data
         const resourcesData = scheduler.resourceStore.getRange().map(resourceRecord => ({
             id: resourceRecord.id as string,
             name: resourceRecord.name as string,
-            // Add any other resource fields you need
         })) as BryntumData['resources'];
 
-        // 3. Combine and store the captured state
+        // Combine and store the captured state
         const capturedState: BryntumData = {
             resources: resourcesData,
             events: eventsData,
-            // Note: Dependencies/Assignments would be extracted here too
+            // Dependencies/Assignments would be extracted here too
         };
 
         // Store the captured state in React state variable
@@ -84,14 +81,14 @@ function App() {
   useEffect(() => {
     async function loadData() {
       try {
-        // 1. Load Bryntum-native config (e.g., columns, dates)
+        // Load Bryntum-native static config (e.g., columns, dates)
         const bryntumStaticConfig = { ...schedulerproProps };
 
-        // 2. Load Timefold data
+        // Load Timefold data
         const timefoldData = await modelService.loadModelInput();
         setTimefoldRoot(timefoldData);
 
-        // 3. Transform Timefold data into Bryntum format
+        // Transform Timefold data into Bryntum format
         const bryntumTransformedData: BryntumData = transformTimefoldToBryntum(timefoldData);
 
         // 4. Merge static config and transformed data
@@ -99,10 +96,10 @@ function App() {
           ...bryntumStaticConfig,
           resources: bryntumTransformedData.resources,
           events: bryntumTransformedData.events,
-          // Note: Dependencies and Assignments are not mapped here yet
+          // Dependencies and Assignments are not mapped here yet
         };
 
-        // 5. Set the final, combined object as your config
+        // Set the final, combined object as your config
         setSchedulerConfig(finalConfig);
 
       } catch (err) {
@@ -117,7 +114,7 @@ function App() {
     }
 
     loadData();
-  }, []); // The empty array [] means this effect runs only once
+  }, []);
 
   // === RENDER ===
   const renderContent = () => {
@@ -142,7 +139,7 @@ function App() {
             <button
               onClick={captureSchedulerState}
               className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 ease-in-out transform hover:scale-105 active:scale-95 disabled:opacity-50"
-              disabled={!isSchedulerReady} // *** FIX APPLIED HERE ***
+              disabled={!isSchedulerReady}
             >
               Capture Bryntum State
             </button>
