@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import { Root } from './types/timefold';
 import { BryntumData } from './types/bryntum';
@@ -19,7 +19,66 @@ function App() {
   // This state holds the config loaded directly from the JSON file.
   const [schedulerConfig, setSchedulerConfig] = useState<Partial<BryntumSchedulerProProps> | null>(null);
 
+  // *** FIX: New state to track if the Bryntum component has mounted and initialized ***
+  const [isSchedulerReady, setIsSchedulerReady] = useState<boolean>(false);
+  
+  // State to temporarily hold the captured Bryntum data
+  const [capturedBryntumState, setCapturedBryntumState] = useState<BryntumData | null>(null);
+
+  // Ref to access the underlying Bryntum component instance
   const schedulerpro = useRef<BryntumSchedulerPro>(null);
+
+  // === HANDLERS ===
+
+  /**
+   * Reads the current state from the Bryntum SchedulerPro instance.
+   */
+  const captureSchedulerState = useCallback(() => {
+    // Access the Bryntum component instance via the ref
+    const scheduler = schedulerpro.current?.instance;
+
+    if (!scheduler) {
+      console.error('Bryntum Scheduler instance not available.');
+      return;
+    }
+
+    // Bryntum uses Data Stores. We need to access the EventStore and ResourceStore
+    try {
+        // 1. Extract Events (Tasks) data
+        const eventsData = scheduler.eventStore.getRange().map(eventRecord => ({
+            id: eventRecord.id as string,
+            name: eventRecord.name as string,
+            startDate: eventRecord.startDate as Date, // Bryntum records typically hold Date objects
+            endDate: eventRecord.endDate as Date,     // after they are loaded
+            resourceId: eventRecord.resourceId as string,
+            // Add other fields you need for Timefold re-mapping
+            duration: eventRecord.duration,
+        })) as BryntumData['events'];
+
+        // 2. Extract Resources (Staff/Vehicles) data
+        const resourcesData = scheduler.resourceStore.getRange().map(resourceRecord => ({
+            id: resourceRecord.id as string,
+            name: resourceRecord.name as string,
+            // Add any other resource fields you need
+        })) as BryntumData['resources'];
+
+        // 3. Combine and store the captured state
+        const capturedState: BryntumData = {
+            resources: resourcesData,
+            events: eventsData,
+            // Note: Dependencies/Assignments would be extracted here too
+        };
+
+        // Store the captured state in React state variable
+        setCapturedBryntumState(capturedState);
+        console.log('--- Bryntum State Captured ---');
+        console.log('Events:', eventsData);
+        console.log('Resources:', resourcesData);
+
+    } catch (e) {
+        console.error("Failed to capture scheduler state:", e);
+    }
+  }, []);
 
   // === DATA FETCHING & TRANSFORMATION ===
   useEffect(() => {
@@ -76,12 +135,30 @@ function App() {
 
     // Only render BryntumSchedulerPro if the config is ready
     if (schedulerConfig) {
-      console.log('Final Scheduler Config:', schedulerConfig);
       return (
-        <BryntumSchedulerPro
-          ref={schedulerpro}
-          {...schedulerConfig}
-        />
+        <>
+          <div className="flex justify-center p-4 bg-gray-100 border-b">
+            {/* The button's disabled state now relies on isSchedulerReady */}
+            <button
+              onClick={captureSchedulerState}
+              className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 ease-in-out transform hover:scale-105 active:scale-95 disabled:opacity-50"
+              disabled={!isSchedulerReady} // *** FIX APPLIED HERE ***
+            >
+              Capture Bryntum State
+            </button>
+            {capturedBryntumState && (
+                <span className='ml-4 p-3 bg-green-100 text-green-800 rounded-lg shadow-inner font-mono text-sm'>
+                    State Captured! (Check console)
+                </span>
+            )}
+          </div>
+          <BryntumSchedulerPro
+            ref={schedulerpro}
+            // *** FIX: onReady handler forces a re-render when the component is ready ***
+            onReady={() => setIsSchedulerReady(true)}
+            {...schedulerConfig}
+          />
+        </>
       );
     }
 
