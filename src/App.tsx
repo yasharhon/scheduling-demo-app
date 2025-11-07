@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import { Root } from './types/timefold';
-import { BryntumData } from './types/bryntum';
+import { BryntumData, BryntumEvent, BryntumResource } from './types/bryntum';
 import { modelService } from './services/timefold/service.mock';
 import { transformTimefoldToBryntum } from './mappers/timefold';
 import { schedulerproProps } from './SchedulerProConfig';
@@ -44,20 +44,20 @@ function App() {
 
     try {
         // Extract Events (Tasks) data
-        const eventsData = scheduler.eventStore.getRange().map(eventRecord => ({
+        const eventsData = scheduler.eventStore.getRange().map((eventRecord): BryntumEvent => ({
             id: eventRecord.id as string,
             name: eventRecord.name as string,
             startDate: eventRecord.startDate as Date,
             endDate: eventRecord.endDate as Date,
             resourceId: eventRecord.resourceId as string,
             duration: eventRecord.duration,
-        })) as BryntumData['events'];
+        }));
 
         // Extract Resources (Staff/Vehicles) data
-        const resourcesData = scheduler.resourceStore.getRange().map(resourceRecord => ({
+        const resourcesData = scheduler.resourceStore.getRange().map((resourceRecord): BryntumResource => ({
             id: resourceRecord.id as string,
             name: resourceRecord.name as string,
-        })) as BryntumData['resources'];
+        }));
 
         // Combine and store the captured state
         const capturedState: BryntumData = {
