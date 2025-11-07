@@ -18,9 +18,6 @@ function App() {
 
   // This state holds the config loaded directly from the JSON file.
   const [schedulerConfig, setSchedulerConfig] = useState<Partial<BryntumSchedulerProProps> | null>(null);
-
-  // *** FIX: New state to track if the Bryntum component has mounted and initialized ***
-  const [isSchedulerReady, setIsSchedulerReady] = useState<boolean>(false);
   
   // State to temporarily hold the captured Bryntum data
   const [capturedBryntumState, setCapturedBryntumState] = useState<BryntumData | null>(null);
@@ -91,7 +88,7 @@ function App() {
         // Transform Timefold data into Bryntum format
         const bryntumTransformedData: BryntumData = transformTimefoldToBryntum(timefoldData);
 
-        // 4. Merge static config and transformed data
+        // Merge static config and transformed data
         const finalConfig = {
           ...bryntumStaticConfig,
           resources: bryntumTransformedData.resources,
@@ -139,7 +136,6 @@ function App() {
             <button
               onClick={captureSchedulerState}
               className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 ease-in-out transform hover:scale-105 active:scale-95 disabled:opacity-50"
-              disabled={!isSchedulerReady}
             >
               Capture Bryntum State
             </button>
@@ -151,8 +147,6 @@ function App() {
           </div>
           <BryntumSchedulerPro
             ref={schedulerpro}
-            // *** FIX: onReady handler forces a re-render when the component is ready ***
-            onReady={() => setIsSchedulerReady(true)}
             {...schedulerConfig}
           />
         </>
