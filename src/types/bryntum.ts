@@ -16,6 +16,12 @@ export interface BryntumEvent {
     // Add other necessary event fields here
 }
 
+export interface BryntumAssignment {
+    id: string,
+    event: string, // Event ID
+    resource: string // Resource ID
+}
+
 /**
  * Types representing the core data structure needed by Bryntum SchedulerPro.
  * This structure is typically passed as props (or via data stores).
@@ -23,6 +29,7 @@ export interface BryntumEvent {
 export interface BryntumData {
     resources: BryntumResource[];
     events: BryntumEvent[];
+    assignments: BryntumAssignment[];
     // SchedulerPro also often deals with dependencies and assignments,
     // but we'll focus on resources and events for this initial step.
 }
