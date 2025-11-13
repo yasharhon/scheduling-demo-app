@@ -1,4 +1,6 @@
-import { Root } from '../../types/timefold';
+import { Root, JobCreationResponse } from '../../types/timefold';
+import {loadJsonFile} from '../../utils/json';
+
 
 /**
  * Service to load the root model object from a local JSON file.
@@ -8,27 +10,18 @@ export const modelService = {
    * Fetches and parses the model.json file from the /public directory.
    */
   async loadModelInput(): Promise<Root> {
-    try {
-      // We use a standard fetch, not the apiClient,
-      // because this is a local static file.
-      // Files in the 'public' directory are served from the root '/'.
-      const response = await fetch('/dataset.json');
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch model.json: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      // We cast the parsed JSON to our Root interface.
-      // Since these are interfaces (not classes), no "hydration" is needed.
-      return data as Root;
+    return loadJsonFile<Root>('/dataset.json');
+  },
 
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error('Error loading model.json:', error.message);
-      }
-      throw error;
-    }
+  /**
+   * Simulates POSTing the modified data to the Timefold solver API,
+   * which starts an ASYNCHRONOUS solving job.
+   *
+   * @param modifiedTimefoldInput The Timefold 'Root' object (or specific payload)
+   * containing the user's changes (e.g., pinned visits).
+   * @returns A Promise that resolves to a job status object.
+   */
+  async postSolutionRequest(modifiedTimefoldInput: Root): Promise<JobCreationResponse> {
+    return loadJsonFile<JobCreationResponse>('/jobrequest.json');
   }
 };

@@ -68,7 +68,7 @@ export const transformTimefoldToBryntum = (timefoldRoot: Root): BryntumData => {
         };
     }).slice(0, 3);
 
-    // NOTE: This implementation does not currently handle dependencies or assignments,
+    // NOTE: This implementation does not currently handle dependencies,
     // as those would require further mapping of Timefold's itinerary structure.
 
     const assignments: BryntumAssignment[] = events.map((event: BryntumEvent) => {
