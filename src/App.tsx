@@ -93,6 +93,7 @@ function App() {
           ...bryntumStaticConfig,
           resources: bryntumTransformedData.resources,
           events: bryntumTransformedData.events,
+          assignments: bryntumTransformedData.assignments
           // Dependencies and Assignments are not mapped here yet
         };
 

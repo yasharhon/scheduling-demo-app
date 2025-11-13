@@ -1,5 +1,5 @@
 import { Root, Vehicle, Visit } from '../types/timefold';
-import { BryntumData, BryntumEvent, BryntumResource } from '../types/bryntum';
+import { BryntumData, BryntumEvent, BryntumResource, BryntumAssignment } from '../types/bryntum';
 
 /**
  * Simple parser for common ISO 8601 Duration formats (e.g., 'PT2H', 'PT30M').
@@ -71,8 +71,17 @@ export const transformTimefoldToBryntum = (timefoldRoot: Root): BryntumData => {
     // NOTE: This implementation does not currently handle dependencies or assignments,
     // as those would require further mapping of Timefold's itinerary structure.
 
+    const assignments: BryntumAssignment[] = events.map((event: BryntumEvent) => {
+        return {
+            id: event.id + "_assign",
+            event: event.id,
+            resource: resources[0].id // Make this static for the moment
+        }
+    });
+
     return {
         resources,
         events,
+        assignments
     };
 };
