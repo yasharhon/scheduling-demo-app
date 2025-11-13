@@ -1,3 +1,19 @@
+export interface JobCreationResponse {
+  id: string
+  parentId: any
+  originId: string
+  name: string
+  submitDateTime: string
+  startDateTime: any
+  activeDateTime: any
+  completeDateTime: any
+  shutdownDateTime: any
+  solverStatus: string
+  score: any
+  tags: string[]
+  validationResult: any
+}
+
 export interface Root {
   config: Config
   modelInput: ModelInput
