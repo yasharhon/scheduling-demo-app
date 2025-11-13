@@ -1,74 +1,78 @@
 import { Root, Vehicle, Visit } from '../types/timefold';
-import { BryntumData } from '../types/bryntum';
-import { BryntumSchedulerProProps } from '@bryntum/schedulerpro-react';
+import { BryntumData, BryntumEvent, BryntumResource } from '../types/bryntum';
 
 /**
- * Converts a Timefold Root DTO into a structure that can be directly consumed
- * by the Bryntum SchedulerPro component.
+ * Simple parser for common ISO 8601 Duration formats (e.g., 'PT2H', 'PT30M').
+ * This is simplified for interview purposes and handles Hours (H) and Minutes (M).
+ * @param isoDuration The ISO 8601 duration string.
+ * @returns Duration in minutes.
+ */
+function parseIsoDuration(isoDuration: string): number {
+    const matchHours = isoDuration.match(/(\d+)H/);
+    const matchMinutes = isoDuration.match(/(\d+)M/);
+
+    let totalMinutes = 0;
+    if (matchHours) {
+        totalMinutes += parseInt(matchHours[1] as string) * 60;
+    }
+    if (matchMinutes) {
+        totalMinutes += parseInt(matchMinutes[1] as string);
+    }
+
+    return totalMinutes; // Duration in minutes
+}
+
+/**
+ * Transforms a Timefold input dataset into the Bryntum data format.
  *
- * NOTE: This is a placeholder implementation. Real implementation would
- * require careful mapping of Timefold's specific date/time strings
- * (like ISO 8601 strings) and complex object properties to simple
- * Bryntum properties (like 'id', 'name', 'startDate', 'resourceId').
- *
- * @param timefoldRoot - The full Timefold Root DTO.
- * @returns An object containing Bryntum-compatible resources and events arrays.
+ * @param timefoldRoot The complete Timefold planning input model.
+ * @returns A BryntumData object ready to be fed to the scheduler.
  */
 export const transformTimefoldToBryntum = (timefoldRoot: Root): BryntumData => {
-    const { vehicles, visits } = timefoldRoot.modelInput;
-
-    // --- 1. Map Vehicles (Timefold's resources) to Bryntum Resources ---
-    const bryntumResources: BryntumData['resources'] = vehicles.map((vehicle: Vehicle) => ({
-        id: vehicle.id, // Use vehicle ID as the Bryntum Resource ID
-        name: vehicle.id, // Use ID as name for now, or find a better name if available
-        // You could also add vehicleType, technicianRating, etc. here
+    const resources: BryntumResource[] = timefoldRoot.modelInput.vehicles.map((vehicle: Vehicle) => ({
+        id: vehicle.id,
+        name: vehicle.id, // Use vehicleType or another field for display name
+        // You might add vehicle-specific custom fields here
     }));
 
-    // --- 2. Map Visits (Timefold's tasks) to Bryntum Events ---
-    // This is the most complex part, as Timefold's visits don't inherently have
-    // a resource assignment or start/end time until they are solved.
-    // For *input* visualization, you may just plot them on a generic unassigned track,
-    // or as fixed time constraints if they have hard time windows.
-    //
-    // For this example, we assume we want to visualize the *potential* visits.
+    const events: BryntumEvent[] = timefoldRoot.modelInput.visits.map((visit: Visit) => {
+        // Parse Duration
+        const durationMinutes = parseIsoDuration(visit.serviceDuration);
 
-    const bryntumEvents: BryntumData['events'] = visits.map((visit: Visit) => {
-        // Find the earliest time window start as a mock start date
-        const earliestTimeWindow = visit.timeWindows.length > 0
-            ? visit.timeWindows[0].minStartTime
-            : timefoldRoot.modelInput.planningWindow.startDate; // Fallback to planning start
+        // Determine Initial Start/End Dates
+        // The time windows define CONSTRAINTS. Since this is the INPUT model,
+        // we assume the visit is UNSCHEDULED. We use the earliest constraint as
+        // a default position for visualization.
+        const firstTimeWindow = visit.timeWindows[0];
 
-        // Calculate a mock end date (start date + service duration)
-        // NOTE: Bryntum expects a valid Date object or a parsable string.
-        // Handling ISO 8601 duration strings (like 'PT15M') would be required here.
-        // For demonstration, we'll use a placeholder date string.
+        // JS Date object handles the ISO 8601 timestamp and timezone offset automatically
+        const startDate = firstTimeWindow ? new Date(firstTimeWindow.minStartTime) : new Date();
 
-        const mockStartDate = `${timefoldRoot.modelInput.planningWindow.startDate}T${earliestTimeWindow}`;
-        const mockEndDate = `${timefoldRoot.modelInput.planningWindow.startDate}T${earliestTimeWindow}`;
-        // !!! REAL LOGIC NEEDED HERE to calculate end date from serviceDuration !!!
+        // Calculate end date by adding the service duration
+        const endDate = new Date(startDate.getTime() + durationMinutes * 60000); // Minutes to milliseconds
 
         return {
             id: visit.id,
             name: visit.name,
-            // Placeholder: Assign to a generic or unassigned resource ID for visualization
-            // before the solver runs.
-            resourceId: 'unassigned-placeholder',
-            startDate: mockStartDate,
-            endDate: mockEndDate,
-            duration: visit.serviceDuration, // Store original duration string
-            isPinned: visit.pinningRequested, // Example of mapping a flag
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
+            // For the input model, resourceId is initially null or undefined,
+            // placing it in the unassigned area of the Bryntum scheduler.
+            resourceId: null as unknown as string, // Cast to string to satisfy BryntumData DTO
+            duration: durationMinutes,
+            durationUnit: 'minute',
+            // Preserve the original priority for display or styling
+            priority: visit.priority,
+            requiredSkills: visit.requiredSkills.map(s => s.name).join(', '),
+            timeWindow: firstTimeWindow ? `${firstTimeWindow.minStartTime} - ${firstTimeWindow.maxEndTime}` : 'N/A'
         };
-    });
+    }).slice(0, 3);
 
-    // In a real implementation, you would need to merge the resources with a
-    // dummy 'unassigned-placeholder' resource for the visits that aren't yet assigned
-    // to a vehicle in the Timefold input.
+    // NOTE: This implementation does not currently handle dependencies or assignments,
+    // as those would require further mapping of Timefold's itinerary structure.
 
     return {
-        resources: bryntumResources,
-        events: bryntumEvents,
+        resources,
+        events,
     };
 };
-
-// You can export BryntumData interface here for use in App.tsx
-//export type { BryntumData };
