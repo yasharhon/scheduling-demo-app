@@ -1,4 +1,4 @@
-import { Root, JobCreationResponse } from '../../types/timefold';
+import { Root, JobCreationResponse, JobStatusResponse } from '../../types/timefold';
 import {loadJsonFile} from '../../utils/json';
 
 
@@ -23,5 +23,15 @@ export const modelService = {
    */
   async postSolutionRequest(modifiedTimefoldInput: Root): Promise<JobCreationResponse> {
     return loadJsonFile<JobCreationResponse>('/jobrequest.json');
+  },
+
+  /**
+   * Simulates GETing the status of a job from the Timefold solver API.
+   *
+   * @param jobId The ID of a job in the Timefold API.
+   * @returns A Promise that resolves to a job status object.
+   */
+  async getSolutionStatus(jobId: string): Promise<JobStatusResponse> {
+    return loadJsonFile<JobStatusResponse>('/jobresult.json');
   }
 };
