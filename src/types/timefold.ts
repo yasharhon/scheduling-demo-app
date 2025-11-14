@@ -324,3 +324,115 @@ export interface PlanningWindow {
   startDate: string
   endDate: string
 }
+
+export interface JobStatusResponse {
+  metadata: Metadata
+  modelOutput: ModelOutput
+  inputMetrics: InputMetrics
+  kpis: Kpis
+}
+
+export interface Metadata {
+  id: string
+  parentId: string
+  originId: string
+  name: string
+  submitDateTime: string
+  startDateTime: string
+  activeDateTime: string
+  completeDateTime: string
+  shutdownDateTime: string
+  solverStatus: string
+  score: string
+  tags: string[]
+  validationResult: ValidationResult
+  failureMessage: string
+}
+
+export interface ValidationResult {
+  summary: string
+  errors: string[]
+  warnings: string[]
+}
+
+export interface ModelOutput {
+  vehicles: OutputVehicle[]
+  unassignedVisits: string[]
+}
+
+export interface OutputVehicle {
+  id: string
+  shifts: OutputShift[]
+}
+
+export interface OutputShift {
+  id: string
+  startTime: string
+  pinned: boolean
+  itinerary: Itinerary[]
+  metrics: Metrics
+}
+
+export interface Itinerary {
+  id: string
+  kind: string
+  arrivalTime?: string
+  startServiceTime?: string
+  departureTime?: string
+  effectiveServiceDuration?: string
+  travelTimeFromPreviousStandstill: string
+  travelDistanceMetersFromPreviousStandstill: number
+  minStartTravelTime?: string
+  pinned?: boolean
+  startTime?: string
+  endTime?: string
+}
+
+export interface Metrics {
+  totalTravelTime: string
+  travelTimeFromStartLocationToFirstVisit: string
+  travelTimeBetweenVisits: string
+  travelTimeFromLastVisitToEndLocation: string
+  totalTravelDistanceMeters: number
+  travelDistanceFromStartLocationToFirstVisitMeters: number
+  travelDistanceBetweenVisitsMeters: number
+  travelDistanceFromLastVisitToEndLocationMeters: number
+  endLocationArrivalTime: string
+  technicianCosts: number
+  overtime: string
+}
+
+export interface InputMetrics {
+  visits: number
+  visitGroups: number
+  visitDependencies: number
+  mandatoryVisits: number
+  optionalVisits: number
+  vehicles: number
+  vehicleShifts: number
+  visitsWithSla: number
+  movableVisits: number
+  pinnedVisits: number
+}
+
+export interface Kpis {
+  totalTravelTime: string
+  travelTimeFromStartLocationToFirstVisit: string
+  travelTimeBetweenVisits: string
+  travelTimeFromLastVisitToEndLocation: string
+  totalTravelDistanceMeters: number
+  travelDistanceFromStartLocationToFirstVisitMeters: number
+  travelDistanceBetweenVisitsMeters: number
+  travelDistanceFromLastVisitToEndLocationMeters: number
+  totalUnassignedVisits: number
+  totalAssignedVisits: number
+  assignedMandatoryVisits: number
+  assignedOptionalVisits: number
+  totalActivatedVehicles: number
+  workingTimeFairnessPercentage: number
+  totalTechnicianCosts: number
+  totalOvertime: string
+  averageTechnicianRating: number
+  percentageVisitsInSla: number
+  absoluteVisitsInSla: number
+}
