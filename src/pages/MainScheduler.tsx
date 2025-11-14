@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-
+import { Link } from 'react-router'; 
 import { Root } from '../types/timefold';
 import { BryntumData, BryntumEvent, BryntumResource } from '../types/bryntum';
 import { modelService } from '../services/timefold/service.mock';
@@ -19,15 +19,12 @@ const SubmittedJobsList = ({ jobs }: { jobs: JobCreationResponse[] }) => {
       <h3 className="text-xl font-semibold mb-3">Submitted Jobs</h3>
       <ul className="list-disc pl-5 space-y-2">
         {jobs.map((job) => (
-          <li key={job.id} className="text-blue-600 hover:text-blue-800">    
-            <p>{job.id}</p>
+          <li key={job.id} className="text-blue-600 hover:text-blue-800">
+            {/* This Link creates a URL like /results/job-abc-123 */}
+            <Link to={`/results/${job.id}`}>
+              View Solution: {job.id} (Status: {job.solverStatus})
+            </Link>
           </li>
-          // <li key={job.id} className="text-blue-600 hover:text-blue-800">
-          //   {/* This Link creates a URL like /results/job-abc-123 */}
-          //   <Link to={`/results/${job.id}`}>
-          //     View Solution: {job.id} (Status: {job.solverStatus})
-          //   </Link>
-          // </li>
         ))}
       </ul>
     </div>
