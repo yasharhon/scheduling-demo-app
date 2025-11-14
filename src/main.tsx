@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router'; 
 import App from './App'; // Vite handles the .tsx extension
 
 // Find the 'root' div in index.html
@@ -9,7 +10,10 @@ const rootElement = document.getElementById('root');
 if (rootElement) {
   ReactDOM.createRoot(rootElement as HTMLElement).render(
     <React.StrictMode>
-      <App />
+      {/* BrowserRouter wraps the App to enable routing */}
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </React.StrictMode>
   );
 } else {
