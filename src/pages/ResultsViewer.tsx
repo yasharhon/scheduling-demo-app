@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router';
 import { BryntumSchedulerPro, BryntumSchedulerProProps } from '@bryntum/schedulerpro-react';
 import { modelService } from '../services/timefold/service.mock';
 // import { transformTimefoldSolutionToBryntum } from '../mappers/timefoldSolution';
-import { Root } from '../types/timefold';
+import { JobStatusResponse } from '../types/timefold';
 
 /**
  * The Results Viewer Page
@@ -14,6 +14,7 @@ function ResultsViewer() {
   // --- STATE ---
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [valErrors, setValErrors] = useState<string[]>([]);
   const [schedulerConfig, setSchedulerConfig] = useState<Partial<BryntumSchedulerProProps> | null>(null);
   
   // --- ROUTING ---
@@ -26,29 +27,32 @@ function ResultsViewer() {
     if (!jobId) return;
 
     async function loadSolutionData() {
-    //   try {
-    //     setLoading(true);
-    //     setError(null);
+      try {
+        setLoading(true);
+        setError(null);
 
-    //     // 1. Fetch the solved Root object from the mock service
-    //     const solvedTimefoldData: Root = await modelService.getSolutionResult(jobId);
+        const solvedTimefoldData: JobStatusResponse = await modelService.getSolutionStatus(jobId as string);
 
-    //     // 2. Transform the *solution* data into Bryntum format
-    //     //    (This mapper reads the assignments from the itinerary)
-    //     const bryntumData = transformTimefoldSolutionToBryntum(solvedTimefoldData);
+        if (solvedTimefoldData.metadata.validationResult != null) {
+          setValErrors(solvedTimefoldData.metadata.validationResult.errors);
+        }
 
-    //     // 3. Set the config for the Bryntum component
-    //     setSchedulerConfig(bryntumData);
+        // 2. Transform the *solution* data into Bryntum format
+        //    (This mapper reads the assignments from the itinerary)
+        // const bryntumData = transformTimefoldSolutionToBryntum(solvedTimefoldData);
 
-    //   } catch (err) {
-    //     if (err instanceof Error) {
-    //       setError(err.message);
-    //     } else {
-    //       setError('An unknown error occurred loading the solution.');
-    //     }
-    //   } finally {
-    //     setLoading(false);
-    //   }
+        // 3. Set the config for the Bryntum component
+        // setSchedulerConfig(bryntumData);
+
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred loading the solution.');
+        }
+      } finally {
+        setLoading(false);
+      }
     }
 
     loadSolutionData();
@@ -68,6 +72,21 @@ function ResultsViewer() {
       );
     }
 
+    if (valErrors.length > 0) {
+        return (
+        <div className="p-4 mt-6 bg-gray-100 rounded-lg shadow">
+          <h3 className="text-xl font-semibold mb-3">Validation errors</h3>
+          <ul className="list-disc pl-5 space-y-2">
+            {valErrors.map((valError, i) => (
+              <li key={i} className="text-blue-600 hover:text-blue-800">
+                <p>{valError}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+
     if (schedulerConfig) {
       return (
         <BryntumSchedulerPro
@@ -83,7 +102,7 @@ function ResultsViewer() {
 
   // --- RENDER ---
   return (
-    <div className="App">
+    <div>
       <header className="app-header">
         <h1>Timefold Solution: {jobId}</h1>
         {/* Add a link to go back to the main page */}
